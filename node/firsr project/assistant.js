@@ -1,3 +1,8 @@
+const readline = require('node:readline');
+const { stdin: input, stdout: output } = require('node:process');
+
+const terminal = readline.createInterface({ input, output });
+
 ////////////////////////////////////////////////////////////////////////////// class phonebook /////////////////////////////////////////////////////////////////////////
 class Phonebook {
   #phonecards;
@@ -8,16 +13,14 @@ class Phonebook {
 
   getPhonecards() {
     if (!this.#phonecards.length) {
-      console.warn("You have no contacts");
+      console.warn('You have no contacts');
     }
 
     return this.#phonecards;
   }
 
   addContact(options = {}) {
-    const objIndex = this.#phonecards.findIndex(
-      (obj) => obj.name == options.name
-    );
+    const objIndex = this.#phonecards.findIndex((obj) => obj.name == options.name);
     if (objIndex >= 0) {
       this.#phonecards[objIndex].phone = options.phone;
       this.#phonecards[objIndex].date = new Date(Date.now()).toUTCString();
@@ -25,10 +28,12 @@ class Phonebook {
     }
     this.#phonecards.push({
       ...options,
-      date: new Date(Date.now()).toUTCString(),
+      date: new Date(Date.now()).toUTCString()
     });
   }
 }
+
+
 //////////////////////////////////////////////////////////////////////////// class notes ///////////////////////////////////////////////////////////////////////////////
 class Notes {
   #notes;
@@ -38,7 +43,7 @@ class Notes {
 
   getAllNotes() {
     if (!this.#notes.length) {
-      console.warn("You have no notes");
+      console.warn('You have no notes');
     }
 
     return this.#notes;
@@ -53,7 +58,7 @@ class Notes {
     } else {
       this.#notes.push({
         ...params,
-        created: new Date(Date.now()).toUTCString(),
+        created: new Date(Date.now()).toUTCString()
       });
     }
   }
@@ -61,48 +66,59 @@ class Notes {
 
 const myNotes = new Notes();
 const myPhonebook = new Phonebook();
+
+
 /////////////////////////////////////////////////////////////////// set default values(for testing GET commands)////////////////////////////////////////////////////
 myNotes.setNote({
-  name: "Grab some food",
-  tags: ["supermarket", "local shop", "healthy food"],
+  name: 'Grab some food',
+  tags: ['supermarket', 'local shop', 'healthy food']
 });
-myPhonebook.addContact({ name: "Vasya", phone: "0675411206" });
+myPhonebook.addContact({ name: 'Vasya', phone: '0675411206' });
+
+
 ////////////////////////////////////////////////////////////////// loop question - answer //////////////////////////////////////////////////////////////////////////
-while (true) {
-  let fullCommand = prompt(
-    "Enter your command and press enter: \nTo add a contact, type: add contact 'contact name' 'contact phone'\nTo get all contacts, type: get contacts\nTo add a note, type: add note 'note name', 'note tags, separated by space'\nTo get all notes, type: get notes\nOr type 'exit' to close a program ",
-    ""
-  );
-  if (fullCommand == "exit") {
-    console.log("I`m tired, i`m leaving");
-    break;
-  }
-  let command = fullCommand.split(" ").splice(0, 2).join(" ");
+const mainQuestion = `Enter your command and press enter:
+To add a contact, type: 'add contact %contact_name% %contact phone%
+To get all contacts, type: 'get-contacts'
+To add a note, type: 'add-note %note_name% %note_tag1% %note_tag2%' (any amount of tags separated by space)
+To get all notes, type: 'get-notes'
+Or type 'exit' to close a program\n`;
+
+function mainHandler(commandString) {
+  const [command, ...args] = commandString.split(' ');
+  console.log({ command, args }); // <-- заціни в консолі!
+
   switch (command) {
-    case "get contacts":
+    case 'get-contacts':
       console.table(myPhonebook.getPhonecards());
       break;
-    case "get notes":
+    case 'get-notes':
       console.table(myNotes.getAllNotes());
       break;
-    case "add contact":
-      myPhonebook.addContact({
-        name: fullCommand.split(" ").slice(2, 3).join(),
-        phone: fullCommand.split(" ").slice(3).join(),
-      });
+    case 'add-contact':
+      const [name, phone] = args;
+      myPhonebook.addContact({ name, phone });
       break;
-    case "add note":
-      let tagPart = fullCommand.split(",").slice(-1).join();
-      let notePart = fullCommand.split(",")[0].split(" ").slice(2).join(" ");
-      myNotes.setNote({
-        name: notePart,
-        tags: tagPart,
-      });
+    case 'add-note':
+      const [noteName, ...tags] = args;
+      myNotes.setNote({ name: noteName, tags});
       break;
+    case 'exit':
+      console.log('Okay, see ya later!');
+      terminal.close();
+      process.exit();
     default:
+      console.log('Unrecognized command, try again...');
       break;
   }
+
+  // making recursive loop
+  terminal.question(mainQuestion, mainHandler);
 }
+
+terminal.question(mainQuestion, mainHandler);
+
+
 
 // const myNotes = new Notes();
 // console.table(myNotes.getAllNotes());
