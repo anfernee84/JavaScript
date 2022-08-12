@@ -5,67 +5,9 @@ const terminal = readline.createInterface({ input, output });
 
 const fs = require("fs");
 
-////////////////////////////////////////////////////////////////////////////// class phonebook /////////////////////////////////////////////////////////////////////////
-class Phonebook {
-  #phonecards;
-
-  constructor() {
-    this.#phonecards = [];
-  }
-
-  getPhonecards() {
-    if (!this.#phonecards.length) {
-      console.warn("You have no contacts");
-    }
-
-    return this.#phonecards;
-  }
-
-  addContact(options = {}) {
-    const objIndex = this.#phonecards.findIndex(
-      (obj) => obj.name == options.name
-    );
-    if (objIndex >= 0) {
-      this.#phonecards[objIndex].phone = options.phone;
-      this.#phonecards[objIndex].date = new Date(Date.now()).toUTCString();
-      return;
-    }
-    this.#phonecards.push({
-      ...options,
-      date: new Date(Date.now()).toUTCString(),
-    });
-  }
-}
-
-//////////////////////////////////////////////////////////////////////////// class notes ///////////////////////////////////////////////////////////////////////////////
-class Notes {
-  #notes;
-  constructor() {
-    this.#notes = [];
-  }
-
-  getAllNotes() {
-    if (!this.#notes.length) {
-      console.warn("You have no notes");
-    }
-
-    return this.#notes;
-  }
-  setNote(params = {}) {
-    const noteIndex = this.#notes.findIndex((note) => note.name == params.name);
-    if (noteIndex >= 0) {
-      this.#notes[noteIndex].name == params.name;
-      if (params.tags.length != 0) {
-        this.#notes[noteIndex].tags = params.tags;
-      }
-    } else {
-      this.#notes.push({
-        ...params,
-        created: new Date(Date.now()).toUTCString(),
-      });
-    }
-  }
-}
+// let's organize our classes in a better way :)
+const Phonebook = require('./assistant/classes/pnonebook');
+const Notes = require('./assistant/classes/notes')
 
 const myNotes = new Notes();
 const myPhonebook = new Phonebook();
