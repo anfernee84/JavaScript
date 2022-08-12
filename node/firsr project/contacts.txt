@@ -1,1 +1,0 @@
-[{"0":{"name":"Vasya","phone":"64651654","date":"Fri, 12 Aug 2022 11:24:59 GMT"},"1":{"name":"ouighoigiyuIOUG54","phone":"5646456","date":"Fri, 12 Aug 2022 11:25:17 GMT"},"date":"Fri, 12 Aug 2022 11:26:31 GMT"},{"name":"IUbgibib","phone":"654641","date":"Fri, 12 Aug 2022 11:26:45 GMT"}]
