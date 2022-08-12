@@ -75,9 +75,14 @@ myNotes.setNote({
   name: "Grab some food",
   tags: ["supermarket", "local shop", "healthy food"],
 });
-// myPhonebook.addContact({ name: "Vasya", phone: "0675411206" });
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////// load default data ////////////////////////////////////////////////////////////////////////
 const fileName = "./contacts.txt";
+try {
+  const loadData = JSON.parse(fs.readFileSync(fileName, "utf8"));
+  myPhonebook.addContact(...loadData);
+} catch (err) {
+  console.error("Load data is empty");
+}
 ////////////////////////////////////////////////////////////////// loop question - answer //////////////////////////////////////////////////////////////////////////
 const mainQuestion = `Enter your command and press enter:
 To add a contact, type: 'add-contact %contact_name% %contact phone%
@@ -111,6 +116,9 @@ function mainHandler(commandString) {
         console.error(err);
       }
       break;
+    //
+    //
+    //
     //
     case "get-notes":
       console.table(myNotes.getAllNotes());
