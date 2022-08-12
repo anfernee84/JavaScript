@@ -1,0 +1,25 @@
+{
+  "phonecards": [
+    {
+      "name": "test-name",
+      "phone": "123456",
+      "date": "Fri, 12 Aug 2022 12:10:01 GMT"
+    },
+    {
+      "name": "test-name-2",
+      "phone": "987654",
+      "date": "Fri, 12 Aug 2022 12:10:01 GMT"
+    }
+  ],
+  "notes": [
+    {
+      "name": "Grab some food",
+      "tags": [
+        "supermarket",
+        "local shop",
+        "healthy food"
+      ],
+      "created": "Fri, 12 Aug 2022 12:10:01 GMT"
+    }
+  ]
+}

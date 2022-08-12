@@ -5,84 +5,56 @@ const terminal = readline.createInterface({ input, output });
 
 const fs = require("fs");
 
-////////////////////////////////////////////////////////////////////////////// class phonebook /////////////////////////////////////////////////////////////////////////
-class Phonebook {
-  #phonecards;
-
-  constructor() {
-    this.#phonecards = [];
-  }
-
-  getPhonecards() {
-    if (!this.#phonecards.length) {
-      console.warn("You have no contacts");
-    }
-
-    return this.#phonecards;
-  }
-
-  addContact(options = {}) {
-    const objIndex = this.#phonecards.findIndex(
-      (obj) => obj.name == options.name
-    );
-    if (objIndex >= 0) {
-      this.#phonecards[objIndex].phone = options.phone;
-      this.#phonecards[objIndex].date = new Date(Date.now()).toUTCString();
-      return;
-    }
-    this.#phonecards.push({
-      ...options,
-      date: new Date(Date.now()).toUTCString(),
-    });
-  }
-}
-
-//////////////////////////////////////////////////////////////////////////// class notes ///////////////////////////////////////////////////////////////////////////////
-class Notes {
-  #notes;
-  constructor() {
-    this.#notes = [];
-  }
-
-  getAllNotes() {
-    if (!this.#notes.length) {
-      console.warn("You have no notes");
-    }
-
-    return this.#notes;
-  }
-  setNote(params = {}) {
-    const noteIndex = this.#notes.findIndex((note) => note.name == params.name);
-    if (noteIndex >= 0) {
-      this.#notes[noteIndex].name == params.name;
-      if (params.tags.length != 0) {
-        this.#notes[noteIndex].tags = params.tags;
-      }
-    } else {
-      this.#notes.push({
-        ...params,
-        created: new Date(Date.now()).toUTCString(),
-      });
-    }
-  }
-}
+// let's organize our classes in a better way :)
+const Phonebook = require('./assistant/classes/pnonebook');
+const Notes = require('./assistant/classes/notes')
 
 const myNotes = new Notes();
 const myPhonebook = new Phonebook();
 
 /////////////////////////////////////////////////////////////////// set default values(for testing GET commands)////////////////////////////////////////////////////
-myNotes.setNote({
-  name: "Grab some food",
-  tags: ["supermarket", "local shop", "healthy food"],
-});
+// myNotes.setNote({
+//   name: "Grab some food",
+//   tags: ["supermarket", "local shop", "healthy food"],
+// });
+
 /////////////////////////////////////////////////////////////////////// load default data ////////////////////////////////////////////////////////////////////////
-const fileName = "./contacts.txt";
+const fileName = "./assistant/data/kind_of_db.txt";
 try {
-  const loadData = JSON.parse(fs.readFileSync(fileName, "utf8"));
-  myPhonebook.addContact(...loadData);
+  // тут ми будем один раз при запуску ініціалізувати ВСІ дані, що збережені в файліку
+  // не треба робити це під час виконання програми постійно
+  // пам'ятаємо про структуру даних, яку ми зберігали - { phonecards: [], notes: []}
+  const { phonecards = [], notes = [] } = JSON.parse(fs.readFileSync(fileName, "utf8"));
+  phonecards.forEach((card) => {
+    myPhonebook.addContact(card);
+  });
+
+  notes.forEach((note) => {
+    myNotes.setNote(note);
+  });
+
 } catch (err) {
   console.error("Load data is empty");
 }
+
+/**
+ * Зберігає ВСІ дані з програми в файлік
+ */
+function saveData() {
+  try {
+    // ми зберігаємо структуру карток контактів, і ноутсів!
+    const dataToSave = {
+      phonecards: myPhonebook.getPhonecards(),
+      notes: myNotes.getAllNotes()
+    };
+
+    fs.writeFileSync(fileName, JSON.stringify(dataToSave));
+    console.log('All data saved!')
+  } catch (err) {
+    console.error('Houston, we have a problem saving data!', err.message);
+  }
+}
+
 ////////////////////////////////////////////////////////////////// loop question - answer //////////////////////////////////////////////////////////////////////////
 const mainQuestion = `Enter your command and press enter:
 To add a contact, type: 'add-contact %contact_name% %contact phone%
@@ -93,33 +65,17 @@ Or type 'exit' to close a program\n`;
 
 function mainHandler(commandString) {
   const [command, ...args] = commandString.split(" ");
-  console.log({ command, args }); // <-- заціни в консолі!
+  console.log({ command, args });
 
   switch (command) {
     case "get-contacts":
-      //   console.table(myPhonebook.getPhonecards());
-      try {
-        const readContent = JSON.parse(fs.readFileSync(fileName, "utf8"));
-        console.table(readContent);
-      } catch (err) {
-        console.error(err);
-      }
+      console.table(myPhonebook.getPhonecards());
       break;
     //
     case "add-contact":
       const [name, phone] = args;
       myPhonebook.addContact({ name, phone });
-      try {
-        const writeContent = JSON.stringify(myPhonebook.getPhonecards()); ////////////////////// я жопой чую, что заманужа вот тут где-то. перезатирается дата тут!!!/////////////////////////////////
-        fs.writeFileSync(fileName, writeContent);
-      } catch (err) {
-        console.error(err);
-      }
       break;
-    //
-    //
-    //
-    //
     case "get-notes":
       console.table(myNotes.getAllNotes());
       break;
@@ -129,6 +85,8 @@ function mainHandler(commandString) {
       myNotes.setNote({ name: noteName, tags });
       break;
     case "exit":
+      console.log("Trying to save current data...");
+      saveData();
       console.log("Okay, see ya later!");
       terminal.close();
       process.exit();
