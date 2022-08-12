@@ -110,7 +110,7 @@ function mainHandler(commandString) {
       const [name, phone] = args;
       myPhonebook.addContact({ name, phone });
       try {
-        const writeContent = JSON.stringify(myPhonebook.getPhonecards());
+        const writeContent = JSON.stringify(myPhonebook.getPhonecards()); ////////////////////// я жопой чую, что заманужа вот тут где-то. перезатирается дата тут!!!/////////////////////////////////
         fs.writeFileSync(fileName, writeContent);
       } catch (err) {
         console.error(err);
