@@ -1,30 +1,29 @@
-const readline = require("node:readline");
-const { stdin: input, stdout: output } = require("node:process");
+const readline = require('node:readline');
+const { stdin: input, stdout: output } = require('node:process');
 
 const terminal = readline.createInterface({ input, output });
 
-const fs = require("fs");
-
 // let's organize our classes in a better way :)
 const Phonebook = require('./assistant/classes/pnonebook');
-const Notes = require('./assistant/classes/notes')
+const Notes = require('./assistant/classes/notes');
+const DataHelper = require('./assistant/helpers/data_helper');
 
 const myNotes = new Notes();
 const myPhonebook = new Phonebook();
 
-/////////////////////////////////////////////////////////////////// set default values(for testing GET commands)////////////////////////////////////////////////////
-// myNotes.setNote({
-//   name: "Grab some food",
-//   tags: ["supermarket", "local shop", "healthy food"],
-// });
+const fileName = './assistant/data/kind_of_db.txt';
+const dataHelper = new DataHelper({ fileName });
 
 /////////////////////////////////////////////////////////////////////// load default data ////////////////////////////////////////////////////////////////////////
-const fileName = "./assistant/data/kind_of_db.txt";
-try {
-  // тут ми будем один раз при запуску ініціалізувати ВСІ дані, що збережені в файліку
-  // не треба робити це під час виконання програми постійно
-  // пам'ятаємо про структуру даних, яку ми зберігали - { phonecards: [], notes: []}
-  const { phonecards = [], notes = [] } = JSON.parse(fs.readFileSync(fileName, "utf8"));
+
+/**
+ * Завантажуємо дані з "бази". Логіка роботи з "базою" відокремлена від логіки
+ * роботи з даними. І ми без проблем зможемо замінити файлік на sqlite чи mongo,
+ * і зміни будуть ТІЛЬКИ в файлХелпері, все інше залишається як є :)
+ */
+function initApp() {
+  const { phonecards = [], notes = [] } = dataHelper.loadData();
+
   phonecards.forEach((card) => {
     myPhonebook.addContact(card);
   });
@@ -32,27 +31,19 @@ try {
   notes.forEach((note) => {
     myNotes.setNote(note);
   });
-
-} catch (err) {
-  console.error("Load data is empty");
 }
 
 /**
  * Зберігає ВСІ дані з програми в файлік
  */
 function saveData() {
-  try {
-    // ми зберігаємо структуру карток контактів, і ноутсів!
-    const dataToSave = {
-      phonecards: myPhonebook.getPhonecards(),
-      notes: myNotes.getAllNotes()
-    };
+  // ми зберігаємо структуру карток контактів, і ноутсів!
+  const dataToSave = {
+    phonecards: myPhonebook.getPhonecards(),
+    notes: myNotes.getAllNotes()
+  };
 
-    fs.writeFileSync(fileName, JSON.stringify(dataToSave));
-    console.log('All data saved!')
-  } catch (err) {
-    console.error('Houston, we have a problem saving data!', err.message);
-  }
+  dataHelper.saveData(dataToSave);
 }
 
 ////////////////////////////////////////////////////////////////// loop question - answer //////////////////////////////////////////////////////////////////////////
@@ -64,34 +55,34 @@ To get all notes, type: 'get-notes'
 Or type 'exit' to close a program\n`;
 
 function mainHandler(commandString) {
-  const [command, ...args] = commandString.split(" ");
+  const [command, ...args] = commandString.split(' ');
   console.log({ command, args });
 
   switch (command) {
-    case "get-contacts":
+    case 'get-contacts':
       console.table(myPhonebook.getPhonecards());
       break;
     //
-    case "add-contact":
+    case 'add-contact':
       const [name, phone] = args;
       myPhonebook.addContact({ name, phone });
       break;
-    case "get-notes":
+    case 'get-notes':
       console.table(myNotes.getAllNotes());
       break;
     //
-    case "add-note":
+    case 'add-note':
       const [noteName, ...tags] = args;
       myNotes.setNote({ name: noteName, tags });
       break;
-    case "exit":
-      console.log("Trying to save current data...");
+    case 'exit':
+      console.log('Trying to save current data...');
       saveData();
-      console.log("Okay, see ya later!");
+      console.log('Okay, see ya later!');
       terminal.close();
       process.exit();
     default:
-      console.log("Unrecognized command, try again...");
+      console.log('Unrecognized command, try again...');
       break;
   }
 
@@ -99,6 +90,8 @@ function mainHandler(commandString) {
   terminal.question(mainQuestion, mainHandler);
 }
 
+// тут головна точка входу в апп
+initApp();
 terminal.question(mainQuestion, mainHandler);
 
 // const myNotes = new Notes();
